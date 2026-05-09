@@ -109,6 +109,8 @@ resetGS();
 const CATAPULT={x:100,y:GROUND_Y-10,armLength:70};
 
 // ============================================================
+const keysDown={};
+
 // DEFINITIONS
 // ============================================================
 const KNIGHT_DEFS={
@@ -763,7 +765,7 @@ function drawWarMap(){
     if(i>0){const prev=mapNodes[i-1];ctx.strokeStyle='rgba(139,115,85,0.3)';ctx.lineWidth=3;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(x,y);ctx.stroke();ctx.setLineDash([]);}
     ctx.fillStyle=stars>0?'rgba(30,80,40,0.8)':'rgba(15,52,96,0.8)';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle=isBoss?'#e94560':'#DAA520';ctx.lineWidth=isBoss?3:2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
-    if(isBoss){ctx.font='22px sans-serif';ctx.fillStyle='#FFF';ctx.fillText('${SKULL_CHAR}',x,y+8);}
+    if(isBoss){ctx.font='22px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(SKULL_CHAR,x,y+8);}
     else{ctx.font='bold 20px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(i+1,x,y+7);}
     ctx.font='10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillText(LEVEL_NAMES[i]||'',x,y+r+14);
     for(let s=0;s<3;s++){ctx.font='12px sans-serif';ctx.fillStyle=s<stars?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('\u2605',x-12+s*12,y-r-6);}
