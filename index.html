@@ -25,7 +25,7 @@ canvas { border-radius: 8px; cursor: crosshair; box-shadow: 0 0 40px rgba(0,0,0,
 <canvas id="game"></canvas>
 <script>
 // ============================================================
-// CASTLE SIEGE v6 â TNT, Glass, 12 Levels, Fun Overhaul
+// CASTLE SIEGE v6 -- TNT, Glass, 12 Levels, Fun Overhaul
 // ============================================================
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -35,11 +35,13 @@ canvas.width = W; canvas.height = H;
 
 const GROUND_Y = H - 60;
 const GRAVITY = 0.18;
-const FRICTION = 0.45; // lowered from 0.65 â longer cascades!
+const FRICTION = 0.45; // lowered from 0.65 -- longer cascades!
 const BOUNCE_F = 0.4;  // slightly bouncier
 const BW = 25, BH = 25, PH = 10;
 const MAX_PULL = 130; // pull radius limit
 let frameCount = 0;
+const STAR_CHAR='\u2605',SKULL_CHAR=String.fromCodePoint(0x1F480),BULLET_CHAR='\u2022';
+function canvasCoords(cx,cy){const r=canvas.getBoundingClientRect();return{x:(cx-r.left)*(canvas.width/r.width),y:(cy-r.top)*(canvas.height/r.height)};}
 
 // ============================================================
 // SAVE
@@ -125,7 +127,7 @@ const SKIN_DEFS={
 let currentScreen='title';
 
 // ============================================================
-// ENTITY FACTORIES â glass + TNT added
+// ENTITY FACTORIES -- glass + TNT added
 // ============================================================
 function createBlock(x,y,w,h,type='wood'){
   const hpMap={wood:2,stone:4,glass:1};
@@ -144,12 +146,12 @@ function createBoss(x,y){return{x,y,w:40,h:50,vx:0,vy:0,alive:true,hp:15,maxHp:1
 // 12 LEVELS
 // ============================================================
 const levels=[
-  // 1: Glass House â intro to glass
+  // 1: Glass House -- intro to glass
   function(){const b=[],bx=W-180;
     for(let r=0;r<3;r++){b.push(createBlock(bx,GROUND_Y-(r+1)*BH,BW,BH,'glass'));b.push(createBlock(bx+60,GROUND_Y-(r+1)*BH,BW,BH,'glass'));}
     b.push(createBlock(bx-5,GROUND_Y-3*BH-PH,90,PH,'wood'));
     return{blocks:b,enemies:[createEnemy(bx+20,GROUND_Y-24),createEnemy(bx+40,GROUND_Y-24)],tnt:[],knightAlloc:{normal:3},starThresholds:[500,1000,1800]};},
-  // 2: Watchtower â wood/stone mix
+  // 2: Watchtower -- wood/stone mix
   function(){const b=[],bx=W-200;
     b.push(createBlock(bx,GROUND_Y-BH,BW,BH,'wood'));b.push(createBlock(bx+75,GROUND_Y-BH,BW,BH,'wood'));
     b.push(createBlock(bx-5,GROUND_Y-BH-PH,105,PH,'wood'));
@@ -157,16 +159,16 @@ const levels=[
     b.push(createBlock(bx-5,GROUND_Y-2*BH-2*PH,105,PH,'stone'));
     b.push(createBlock(bx+20,GROUND_Y-3*BH-2*PH,60,BH,'stone'));
     return{blocks:b,enemies:[createEnemy(bx+30,GROUND_Y-24),createEnemy(bx+50,GROUND_Y-2*BH-2*PH-24),createEnemy(bx+70,GROUND_Y-24)],tnt:[],knightAlloc:{normal:3},starThresholds:[600,1400,2200]};},
-  // 3: TNT Intro â first TNT barrel!
+  // 3: TNT Intro -- first TNT barrel!
   function(){const b=[],bx=W-220;
     for(let f=0;f<3;f++){b.push(createBlock(bx,GROUND_Y-(f+1)*BH-f*PH,BW,BH,'wood'));b.push(createBlock(bx+80,GROUND_Y-(f+1)*BH-f*PH,BW,BH,'wood'));b.push(createBlock(bx-5,GROUND_Y-(f+1)*BH-(f+1)*PH,110,PH,'wood'));}
     const tnt=[createTNT(bx+35,GROUND_Y-26)];
     return{blocks:b,enemies:[createEnemy(bx+20,GROUND_Y-24),createEnemy(bx+60,GROUND_Y-24),createEnemy(bx+40,GROUND_Y-3*(BH+PH)-24)],tnt,knightAlloc:{normal:3},starThresholds:[800,1800,3000]};},
-  // 4: Castle Wall â stone fortress
+  // 4: Castle Wall -- stone fortress
   function(){const b=[],bx=W-240;
     for(let f=0;f<4;f++){b.push(createBlock(bx,GROUND_Y-(f+1)*BH-f*PH,BW,BH,'stone'));b.push(createBlock(bx+70,GROUND_Y-(f+1)*BH-f*PH,BW,BH,f<2?'stone':'wood'));b.push(createBlock(bx+140,GROUND_Y-(f+1)*BH-f*PH,BW,BH,'stone'));b.push(createBlock(bx-5,GROUND_Y-(f+1)*BH-(f+1)*PH,170,PH,'wood'));}
     return{blocks:b,enemies:[createEnemy(bx+25,GROUND_Y-24),createEnemy(bx+90,GROUND_Y-24),createEnemy(bx+130,GROUND_Y-24),createEnemy(bx+65,GROUND_Y-4*(BH+PH)-24)],tnt:[],knightAlloc:{normal:2,heavy:1},starThresholds:[1000,2200,3500]};},
-  // 5: Glass Cannon â glass + TNT chain
+  // 5: Glass Cannon -- glass + TNT chain
   function(){const b=[],bx=W-250;
     for(let c=0;c<4;c++){b.push(createBlock(bx+c*55,GROUND_Y-BH,BW,BH,'glass'));b.push(createBlock(bx+c*55,GROUND_Y-2*BH,BW,BH,'glass'));}
     b.push(createBlock(bx-5,GROUND_Y-2*BH-PH,4*55,PH,'wood'));
@@ -210,7 +212,7 @@ const levels=[
     for(let r=0;r<5;r++)b.push(createBlock(bx-5,GROUND_Y-(r+1)*BH-BH+3,5*50+BW,PH,'glass'));
     const tnt=[createTNT(bx+75,GROUND_Y-26),createTNT(bx+175,GROUND_Y-26),createTNT(bx+125,GROUND_Y-3*BH-26)];
     return{blocks:b,enemies:[createEnemy(bx+25,GROUND_Y-24),createEnemy(bx+100,GROUND_Y-24),createEnemy(bx+175,GROUND_Y-24),createEnemy(bx+50,GROUND_Y-4*BH-24),createEnemy(bx+150,GROUND_Y-4*BH-24),createEnemy(bx+100,GROUND_Y-6*BH-24)],tnt,knightAlloc:{normal:2,heavy:1,berserker:1,archer:1},starThresholds:[2500,5000,8000]};},
-  // 11: The Bunker â heavy stone, TNT is key
+  // 11: The Bunker -- heavy stone, TNT is key
   function(){const b=[],bx=W-260;
     for(let c=0;c<4;c++)for(let r=0;r<5;r++)b.push(createBlock(bx+c*50,GROUND_Y-(r+1)*BH,BW+15,BH,'stone'));
     b.push(createBlock(bx-5,GROUND_Y-5*BH-PH,4*50+BW+10,PH,'stone'));
@@ -571,18 +573,18 @@ function drawCatapult(){
 }
 
 // ============================================================
-// CLASSIC KNIGHT SPRITE â round, friendly, big eyes (ORIGINAL STYLE)
+// CLASSIC KNIGHT SPRITE -- round, friendly, big eyes (ORIGINAL STYLE)
 // ============================================================
 function drawKnightSprite(x,y,r,color,type,rotation,scaleX,scaleY){
   scaleX=scaleX||1;scaleY=scaleY||1;
   ctx.save();ctx.translate(x,y);ctx.rotate(rotation||0);ctx.scale(scaleX,scaleY);
-  // Body â simple round shape
+  // Body -- simple round shape
   ctx.fillStyle=color;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
   // Highlight
   ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.arc(-r*0.2,-r*0.3,r*0.5,0,Math.PI*2);ctx.fill();
   // Outline
   ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
-  // Eyes â big and white
+  // Eyes -- big and white
   ctx.fillStyle='#FFF';
   ctx.beginPath();ctx.arc(-r*0.25,-r*0.15,r*0.28,0,Math.PI*2);ctx.fill();
   ctx.beginPath();ctx.arc(r*0.25,-r*0.15,r*0.28,0,Math.PI*2);ctx.fill();
@@ -594,7 +596,7 @@ function drawKnightSprite(x,y,r,color,type,rotation,scaleX,scaleY){
   ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=1.5;
   ctx.beginPath();ctx.moveTo(-r*0.45,-r*0.35);ctx.lineTo(-r*0.05,-r*0.45);ctx.stroke();
   ctx.beginPath();ctx.moveTo(r*0.05,-r*0.45);ctx.lineTo(r*0.45,-r*0.35);ctx.stroke();
-  // Mouth â little smile
+  // Mouth -- little smile
   ctx.strokeStyle='rgba(0,0,0,0.6)';ctx.lineWidth=1;
   ctx.beginPath();ctx.arc(0,r*0.15,r*0.25,0.1,Math.PI-0.1);ctx.stroke();
   // Type indicators
@@ -609,7 +611,7 @@ function drawBlock(b){
   if(!b.alive)return;const bx=b.x-GS.camX,by=b.y;const hp=b.hp/b.maxHp;
   const base=b.flashTimer>0?'#FFF':b.colors[0];
   if(b.type==='glass'){
-    // Glass â semi-transparent with shine
+    // Glass -- semi-transparent with shine
     ctx.globalAlpha=0.7;ctx.fillStyle=base;ctx.fillRect(bx,by,b.w,b.h);ctx.globalAlpha=1;
     ctx.strokeStyle='rgba(150,220,255,0.6)';ctx.lineWidth=1;ctx.strokeRect(bx,by,b.w,b.h);
     // Shine
@@ -722,7 +724,7 @@ function drawHUD(){
   const eAlive=GS.enemies.filter(e=>e.alive).length+(GS.boss&&GS.boss.alive?1:0);
   ctx.font='bold 14px sans-serif';ctx.fillStyle=eAlive>0?'#e94560':'#4CAF50';ctx.fillText(`Enemies: ${eAlive}`,20,70);
   const thresh=levels[GS.level-1]().starThresholds;const starsEarned=calcStars(GS.levelScore,thresh);
-  for(let i=0;i<3;i++){ctx.font='bold 18px sans-serif';ctx.fillStyle=i<starsEarned?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('â',180+i*22,30);}
+  for(let i=0;i<3;i++){ctx.font='bold 18px sans-serif';ctx.fillStyle=i<starsEarned?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('\u2605',180+i*22,30);}
   if(GS.comboCount>1){ctx.textAlign='center';const cSz=18+Math.min(GS.comboCount,5)*2;ctx.fillStyle=`rgba(255,170,0,${0.3+Math.sin(frameCount*0.1)*0.1})`;ctx.font=`bold ${cSz+8}px sans-serif`;ctx.fillText(`x${Math.min(GS.comboCount,5)}`,W/2,34);ctx.font=`bold ${cSz}px sans-serif`;ctx.fillStyle='#FFAA00';ctx.fillText(`x${Math.min(GS.comboCount,5)} COMBO`,W/2,32);}
   ctx.textAlign='center';const qx=W/2-80,qy=H-32;ctx.fillStyle='rgba(0,0,0,0.5)';roundRect(qx-20,qy-20,200,36,8);ctx.fill();
   for(let i=GS.currentKnightIdx;i<GS.knightQueue.length;i++){const ktype=GS.knightQueue[i];const def=KNIGHT_DEFS[ktype]||KNIGHT_DEFS.normal;const xi=qx+(i-GS.currentKnightIdx)*35;const isCurr=i===GS.currentKnightIdx;const qB=isCurr?Math.sin(frameCount*0.08)*2:0;ctx.fillStyle=def.color;ctx.beginPath();ctx.arc(xi,qy+qB,isCurr?12:8,0,Math.PI*2);ctx.fill();if(isCurr){ctx.strokeStyle='#FFD700';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xi,qy+qB,14,0,Math.PI*2);ctx.stroke();}ctx.fillStyle='#FFF';ctx.font=isCurr?'bold 8px sans-serif':'7px sans-serif';ctx.fillText(def.name.slice(0,3).toUpperCase(),xi,qy+3+qB);}
@@ -741,18 +743,18 @@ function drawTitle(){
   ctx.fillStyle='rgba(255,255,255,0.3)';for(let i=0;i<80;i++){const x=(i*137.5+42)%W,y=(i*73.1+17)%(H*0.5);ctx.globalAlpha=0.3+Math.sin(frameCount*0.02+i)*0.2;ctx.beginPath();ctx.arc(x,y,0.5+(i%3)*0.5,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;
   ctx.textAlign='center';ctx.font='bold 64px sans-serif';ctx.fillStyle='#FFF';ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=10;ctx.fillText('CASTLE SIEGE',W/2,H*0.22);ctx.shadowBlur=0;
   ctx.font='16px sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillText('Catapult your knights. Defeat the enemies.',W/2,H*0.28);
-  ctx.font='bold 20px sans-serif';ctx.fillStyle='#FFD700';ctx.fillText(`â ${SAVE.totalStars} Stars`,W/2,H*0.35);
+  ctx.font='bold 20px sans-serif';ctx.fillStyle='#FFD700';ctx.fillText(`\u2605 ${SAVE.totalStars} Stars`,W/2,H*0.35);
   titleBtns=[{label:'PLAY',x:W/2,y:H*0.48,w:200,h:50,color:'#e94560',action:'map'},{label:'ARMORY',x:W/2,y:H*0.60,w:200,h:50,color:'#0f3460',action:'store'}];
   for(const b of titleBtns){ctx.fillStyle=b.color;roundRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h,10);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=2;roundRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h,10);ctx.stroke();ctx.font='bold 22px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(b.label,b.x,b.y+8);}
   ctx.font='14px sans-serif';ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillText(`Sound: ${sfxEnabled?'ON':'OFF'} (click to toggle)`,W/2,H*0.75);
-  ctx.font='13px sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('Drag to aim â¢ Release to launch â¢ Tap knight mid-air for ability',W/2,H*0.82);
+  ctx.font='13px sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('Drag to aim \u2022 Release to launch \u2022 Tap knight mid-air for ability',W/2,H*0.82);
 }
 
 function drawWarMap(){
   const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#2d1b00');grad.addColorStop(0.5,'#3d2b10');grad.addColorStop(1,'#1a1a0e');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(210,180,140,0.05)';for(let i=0;i<200;i++)ctx.fillRect(Math.random()*W,Math.random()*H,Math.random()*4+1,Math.random()*4+1);
   ctx.textAlign='center';ctx.font='bold 36px sans-serif';ctx.fillStyle='#DAA520';ctx.fillText('THE SIEGE CAMPAIGN',W/2,45);
-  ctx.font='14px sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillText(`â ${SAVE.totalStars} Stars`,W/2,70);
+  ctx.font='14px sans-serif';ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillText(`\u2605 ${SAVE.totalStars} Stars`,W/2,70);
   mapNodes=[];const nC=levels.length,rows=2,cols=Math.ceil(nC/rows);
   for(let i=0;i<nC;i++){const col=i%cols,row=Math.floor(i/cols);
     const x=100+(W-200)*(col/(cols-1)),y=160+row*200+Math.sin(i*1.2)*25;
@@ -761,10 +763,10 @@ function drawWarMap(){
     if(i>0){const prev=mapNodes[i-1];ctx.strokeStyle='rgba(139,115,85,0.3)';ctx.lineWidth=3;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(prev.x,prev.y);ctx.lineTo(x,y);ctx.stroke();ctx.setLineDash([]);}
     ctx.fillStyle=stars>0?'rgba(30,80,40,0.8)':'rgba(15,52,96,0.8)';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle=isBoss?'#e94560':'#DAA520';ctx.lineWidth=isBoss?3:2;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
-    if(isBoss){ctx.font='22px sans-serif';ctx.fillStyle='#FFF';ctx.fillText('ð',x,y+8);}
+    if(isBoss){ctx.font='22px sans-serif';ctx.fillStyle='#FFF';ctx.fillText('${SKULL_CHAR}',x,y+8);}
     else{ctx.font='bold 20px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(i+1,x,y+7);}
     ctx.font='10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.7)';ctx.fillText(LEVEL_NAMES[i]||'',x,y+r+14);
-    for(let s=0;s<3;s++){ctx.font='12px sans-serif';ctx.fillStyle=s<stars?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('â',x-12+s*12,y-r-6);}
+    for(let s=0;s<3;s++){ctx.font='12px sans-serif';ctx.fillStyle=s<stars?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('\u2605',x-12+s*12,y-r-6);}
   }
   ctx.fillStyle='rgba(100,40,40,0.8)';roundRect(20,H-50,80,35,8);ctx.fill();ctx.font='bold 14px sans-serif';ctx.fillStyle='#FFF';ctx.fillText('Back',60,H-28);
   ctx.fillStyle='rgba(15,52,96,0.8)';roundRect(W-100,H-50,80,35,8);ctx.fill();ctx.fillStyle='#FFD700';ctx.fillText('Armory',W-60,H-28);
@@ -773,7 +775,7 @@ function drawWarMap(){
 function drawStore(){
   const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#1a0a2e');grad.addColorStop(1,'#0a0a1e');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';ctx.font='bold 36px sans-serif';ctx.fillStyle='#FFD700';ctx.fillText('ARMORY',W/2,50);
-  ctx.font='16px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(`â ${SAVE.totalStars} Stars Available`,W/2,78);
+  ctx.font='16px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(`\u2605 ${SAVE.totalStars} Stars Available`,W/2,78);
   storeBtns=[];const kColX=W*0.28,sColX=W*0.72;
   ctx.font='bold 20px sans-serif';ctx.fillStyle='#AAA';ctx.fillText('KNIGHTS',kColX,115);
   for(let i=0;i<STORE_KNIGHTS.length;i++){const item=STORE_KNIGHTS[i];const def=KNIGHT_DEFS[item.id];const owned=SAVE.unlockedKnights.includes(item.id);const canBuy=!owned&&SAVE.totalStars>=item.stars;const y=148+i*80;const cW=300,cH=60,cX=kColX-cW/2;
@@ -781,7 +783,7 @@ function drawStore(){
     drawKnightSprite(cX+28,y+15,13,def.color,item.id,0,1,1);
     ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(def.name,cX+50,y+5);ctx.font='11px sans-serif';ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fillText(def.desc,cX+50,y+19);ctx.fillStyle=def.ability?'#44AAFF':'#888';ctx.fillText(def.ability?`Ability: ${def.ability}`:'No ability',cX+50,y+33);
     ctx.textAlign='center';if(owned){ctx.font='bold 13px sans-serif';ctx.fillStyle='#4CAF50';ctx.fillText('OWNED',cX+cW-38,y+12);}
-    else{const bX=cX+cW-72,bY=y,bW=60,bH=25;ctx.fillStyle=canBuy?'#FFD700':'#555';roundRect(bX,bY,bW,bH,6);ctx.fill();ctx.font='bold 12px sans-serif';ctx.fillStyle=canBuy?'#000':'#999';ctx.fillText(`â ${item.stars}`,bX+bW/2,bY+bH/2+4);storeBtns.push({x:bX,y:bY,w:bW,h:bH,type:'knight',id:item.id,cost:item.stars,canBuy});}}
+    else{const bX=cX+cW-72,bY=y,bW=60,bH=25;ctx.fillStyle=canBuy?'#FFD700':'#555';roundRect(bX,bY,bW,bH,6);ctx.fill();ctx.font='bold 12px sans-serif';ctx.fillStyle=canBuy?'#000':'#999';ctx.fillText(`\u2605 ${item.stars}`,bX+bW/2,bY+bH/2+4);storeBtns.push({x:bX,y:bY,w:bW,h:bH,type:'knight',id:item.id,cost:item.stars,canBuy});}}
   ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillStyle='#AAA';ctx.fillText('CATAPULT SKINS',sColX,115);
   for(let i=0;i<STORE_SKINS.length;i++){const item=STORE_SKINS[i];const def=SKIN_DEFS[item.id];const owned=SAVE.unlockedSkins.includes(item.id);const selected=SAVE.selectedSkin===item.id;const canBuy=!owned&&SAVE.totalStars>=item.stars;const y=148+i*80;const cW=300,cH=60,cX=sColX-cW/2;
     ctx.fillStyle=selected?'rgba(80,60,20,0.5)':owned?'rgba(30,80,40,0.4)':'rgba(30,30,60,0.5)';roundRect(cX,y-15,cW,cH,10);ctx.fill();ctx.strokeStyle=selected?'#FFD700':owned?'#4CAF50':canBuy?'#FFD700':'#444';ctx.lineWidth=1.5;roundRect(cX,y-15,cW,cH,10);ctx.stroke();
@@ -789,7 +791,7 @@ function drawStore(){
     ctx.textAlign='left';ctx.font='bold 14px sans-serif';ctx.fillStyle='#FFF';ctx.fillText(def.name,cX+48,y+15);
     ctx.textAlign='center';if(selected){ctx.font='bold 13px sans-serif';ctx.fillStyle='#FFD700';ctx.fillText('EQUIPPED',cX+cW-38,y+12);}
     else if(owned){const bX=cX+cW-72,bY=y,bW=60,bH=25;ctx.fillStyle='rgba(80,60,20,0.6)';roundRect(bX,bY,bW,bH,6);ctx.fill();ctx.font='bold 12px sans-serif';ctx.fillStyle='#FFD700';ctx.fillText('EQUIP',bX+bW/2,bY+bH/2+4);storeBtns.push({x:bX,y:bY,w:bW,h:bH,type:'equip_skin',id:item.id,canBuy:true});}
-    else{const bX=cX+cW-72,bY=y,bW=60,bH=25;ctx.fillStyle=canBuy?'#FFD700':'#555';roundRect(bX,bY,bW,bH,6);ctx.fill();ctx.font='bold 12px sans-serif';ctx.fillStyle=canBuy?'#000':'#999';ctx.fillText(`â ${item.stars}`,bX+bW/2,bY+bH/2+4);storeBtns.push({x:bX,y:bY,w:bW,h:bH,type:'skin',id:item.id,cost:item.stars,canBuy});}}
+    else{const bX=cX+cW-72,bY=y,bW=60,bH=25;ctx.fillStyle=canBuy?'#FFD700':'#555';roundRect(bX,bY,bW,bH,6);ctx.fill();ctx.font='bold 12px sans-serif';ctx.fillStyle=canBuy?'#000':'#999';ctx.fillText(`\u2605 ${item.stars}`,bX+bW/2,bY+bH/2+4);storeBtns.push({x:bX,y:bY,w:bW,h:bH,type:'skin',id:item.id,cost:item.stars,canBuy});}}
   ctx.fillStyle='rgba(100,40,40,0.8)';roundRect(W/2-40,H-50,80,35,8);ctx.fill();ctx.font='bold 14px sans-serif';ctx.fillStyle='#FFF';ctx.textAlign='center';ctx.fillText('Back',W/2,H-28);
 }
 
@@ -804,9 +806,9 @@ function drawLevelComplete(){
     if(GS.bonusPhase){
       const bKnights=GS.bonusKnightsLeft;
       ctx.font='bold 16px sans-serif';ctx.fillStyle='#44AAFF';
-      ctx.fillText(`Unused Knights Bonus: ${bKnights} Ã 1000 = +${bKnights*1000}`,W/2,H*0.37);
+      ctx.fillText(`Unused Knights Bonus: ${bKnights} x 1000 = +${bKnights*1000}`,W/2,H*0.37);
     }
-    for(let i=0;i<3;i++){const delay=i*20;const show=lcAnimTimer>delay;if(show){const scale=Math.min(1,(lcAnimTimer-delay)/15);ctx.font=`bold ${40*scale}px sans-serif`;ctx.fillStyle=i<lcStars?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('â',W/2-50+i*50,H*0.48);}}
+    for(let i=0;i<3;i++){const delay=i*20;const show=lcAnimTimer>delay;if(show){const scale=Math.min(1,(lcAnimTimer-delay)/15);ctx.font=`bold ${40*scale}px sans-serif`;ctx.fillStyle=i<lcStars?'#FFD700':'rgba(255,255,255,0.15)';ctx.fillText('\u2605',W/2-50+i*50,H*0.48);}}
     ctx.font='12px sans-serif';ctx.fillStyle='rgba(255,255,255,0.4)';for(let i=0;i<3;i++)ctx.fillText(`${lcThresholds[i]||'?'}`,W/2-50+i*50,H*0.54);
     lcAnimTimer++;
     if(GS.level<levels.length){ctx.fillStyle='#0f3460';roundRect(W/2-80,H*0.60,160,40,8);ctx.fill();ctx.strokeStyle='#16c79a';ctx.lineWidth=2;roundRect(W/2-80,H*0.60,160,40,8);ctx.stroke();ctx.font='bold 16px sans-serif';ctx.fillStyle='#FFF';ctx.fillText('Next Level',W/2,H*0.60+25);}}
@@ -815,7 +817,7 @@ function drawLevelComplete(){
 }
 
 // ============================================================
-// GAME FLOW â WIN = ALL ENEMIES DEAD + LEFTOVER KNIGHT BONUS
+// GAME FLOW -- WIN = ALL ENEMIES DEAD + LEFTOVER KNIGHT BONUS
 // ============================================================
 function calcStars(score,thresholds){if(!thresholds)return 0;let s=0;for(let i=0;i<3;i++)if(score>=thresholds[i])s++;return s;}
 function levelComplete(){
@@ -857,7 +859,7 @@ function launchKnight(){if(GS.phase!=='aiming'||!GS.dragStart||!GS.dragCurrent||
   GS.catapultRelease=1;playSound('launch');playSound('knightcry');}
 
 // ============================================================
-// INPUT â with pull radius limit + mobile touch
+// INPUT -- with pull radius limit + mobile touch
 // ============================================================
 function handleDown(x,y){
   if(currentScreen==='title'){for(const b of titleBtns){if(x>b.x-b.w/2&&x<b.x+b.w/2&&y>b.y-b.h/2&&y<b.y+b.h/2){currentScreen=b.action;return;}}if(y>H*0.70&&y<H*0.80)sfxEnabled=!sfxEnabled;return;}
@@ -888,11 +890,11 @@ function handleMove(x,y){
 }
 function handleUp(){if(currentScreen==='game'&&GS.isDragging)launchKnight();}
 
-canvas.addEventListener('mousedown',e=>{const r=canvas.getBoundingClientRect();handleDown(e.clientX-r.left,e.clientY-r.top);});
-canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();handleMove(e.clientX-r.left,e.clientY-r.top);});
+canvas.addEventListener('mousedown',e=>{const c=canvasCoords(e.clientX,e.clientY);handleDown(c.x,c.y);});
+canvas.addEventListener('mousemove',e=>{const c=canvasCoords(e.clientX,e.clientY);handleMove(c.x,c.y);});
 canvas.addEventListener('mouseup',handleUp);
-canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];const r=canvas.getBoundingClientRect();handleDown(t.clientX-r.left,t.clientY-r.top);},{passive:false});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];const r=canvas.getBoundingClientRect();handleMove(t.clientX-r.left,t.clientY-r.top);},{passive:false});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];const c=canvasCoords(t.clientX,t.clientY);handleDown(c.x,c.y);},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];const c=canvasCoords(t.clientX,t.clientY);handleMove(c.x,c.y);},{passive:false});
 canvas.addEventListener('touchend',e=>{e.preventDefault();handleUp();},{passive:false});
 document.addEventListener('keydown',e=>{keysDown[e.key]=true;if(currentScreen!=='game')return;if(e.key==='r'||e.key==='R')loadLevel(GS.level);
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','d','w','s'].includes(e.key))e.preventDefault();
